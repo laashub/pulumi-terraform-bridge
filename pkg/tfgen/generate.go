@@ -165,11 +165,6 @@ func (m *module) config() bool {
 	return m.name == configMod
 }
 
-// root returns true if this is the root module for a package.
-func (m *module) root() bool {
-	return m.name == ""
-}
-
 // addMember appends a new member.  This maintains ordering in case the code is sensitive to declaration order.
 func (m *module) addMember(member moduleMember) {
 	name := member.Name()
@@ -220,10 +215,6 @@ const (
 
 // Avoid an unused warning from varcheck.
 var _ = kindInvalid
-
-func isPrimitiveKind(k typeKind) bool {
-	return k < kindList
-}
 
 // propertyType represents a non-resource, non-datasource type. Property types may be simple
 type propertyType struct {
@@ -1095,25 +1086,6 @@ func stableSchemas(schemas map[string]*schema.Schema) []string {
 	return ss
 }
 
-// copyFile is a stupid file copy routine.  It reads the file into memory to avoid messy OS-specific oddities.
-func copyFile(from, to string) error {
-	err := os.MkdirAll(path.Dir(to), 0700)
-	if err != nil {
-		return err
-	}
-	body, err := ioutil.ReadFile(from)
-	if err != nil {
-		return err
-	}
-	return ioutil.WriteFile(to, body, 0600)
-}
-
-// lowerFirst returns the string with a lower-cased first character.
-func lowerFirst(s string) string {
-	c, rest := utf8.DecodeRuneInString(s)
-	return string(unicode.ToLower(c)) + s[rest:]
-}
-
 // upperFirst returns the string with an upper-cased first character.
 func upperFirst(s string) string {
 	c, rest := utf8.DecodeRuneInString(s)
@@ -1141,4 +1113,58 @@ func getLicenseTypeURL(license tfbridge.TFProviderLicense) string {
 		contract.Failf("Unrecognized license: %v", license)
 		return ""
 	}
+}
+
+func getOverlayFilesImpl(overlay *tfbridge.OverlayInfo, extension, srcRoot, dir string, files map[string][]byte) error {
+	for _, f := range overlay.Files {
+		if path.Ext(f) == extension {
+			fp := path.Join(dir, f)
+			contents, err := ioutil.ReadFile(path.Join(srcRoot, fp))
+			if err != nil {
+				return err
+			}
+			files[fp] = contents
+		}
+	}
+	for _, f := range overlay.DestFiles {
+		if path.Ext(f) == extension {
+			fp := path.Join(dir, f)
+			contents, err := ioutil.ReadFile(path.Join(srcRoot, fp))
+			if err != nil {
+				return err
+			}
+			files[fp] = contents
+		}
+	}
+	for k, v := range overlay.Modules {
+		if err := getOverlayFilesImpl(v, extension, srcRoot, path.Join(dir, k), files); err != nil {
+			return err
+		}
+	}
+	return nil
+
+}
+
+func getOverlayFiles(overlay *tfbridge.OverlayInfo, extension, srcRoot string) (map[string][]byte, error) {
+	files := map[string][]byte{}
+	if err := getOverlayFilesImpl(overlay, extension, srcRoot, "", files); err != nil {
+		return nil, err
+	}
+	return files, nil
+}
+
+func emitFile(outDir, relPath string, contents []byte) error {
+	p := path.Join(outDir, relPath)
+	if err := tools.EnsureDir(path.Dir(p)); err != nil {
+		return errors.Wrap(err, "creating directory")
+	}
+
+	f, err := os.Create(p)
+	if err != nil {
+		return errors.Wrap(err, "creating file")
+	}
+	defer contract.IgnoreClose(f)
+
+	_, err = f.Write(contents)
+	return err
 }

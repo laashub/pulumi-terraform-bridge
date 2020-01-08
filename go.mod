@@ -8,7 +8,6 @@ require (
 	cloud.google.com/go/logging v1.0.0 // indirect
 	github.com/Azure/azure-amqp-common-go v1.1.4 // indirect
 	github.com/apache/thrift v0.12.0 // indirect
-	github.com/blang/semver v3.5.1+incompatible
 	github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.2
@@ -24,7 +23,7 @@ require (
 	github.com/reconquest/loreley v0.0.0-20160708080500-2ab6b7470a54 // indirect
 	github.com/sabhiram/go-gitignore v0.0.0-20180611051255-d3107576ba94 // indirect
 	github.com/spf13/cobra v0.0.5
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.4.1-0.20191106224347-f1bd0923b832
 	github.com/tidwall/pretty v0.0.0-20190325153808-1166b9ac2b65 // indirect
 	github.com/uber-go/atomic v1.3.2 // indirect
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
@@ -36,3 +35,5 @@ require (
 )
 
 replace github.com/Azure/go-autorest => github.com/Azure/go-autorest v12.4.3+incompatible
+
+replace github.com/pulumi/pulumi => ../pulumi
