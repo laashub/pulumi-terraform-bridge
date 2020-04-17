@@ -64,6 +64,14 @@ const (
 	pulumiSchema language = "schema"
 )
 
+func (l language) shouldConvertExamples() bool {
+	switch l {
+	case nodeJS, python, pulumiSchema:
+		return true
+	}
+	return false
+}
+
 var allLanguages = []language{golang, nodeJS, python, csharp}
 
 // langGenerator is the interface for language-specific logic and formatting.

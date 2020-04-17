@@ -147,7 +147,6 @@ all:: build install lint test_all
 
 ensure::
 	$(call STEP_MESSAGE)
-	echo "GO111MODULE=on go mod tidy"; GO111MODULE=on go mod tidy;
 	echo "GO111MODULE=on go mod download"; GO111MODULE=on go mod download;
 	@if [ -e 'package.json' ]; then echo "yarn install"; yarn install; fi
 
